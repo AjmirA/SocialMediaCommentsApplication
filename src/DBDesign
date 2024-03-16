@@ -1,0 +1,10 @@
+User Table:
+| id (PK) | username | password | other_fields |
+Post Table:
+| id (PK) | other_fields |
+Comment Table:
+| id (PK) | post_id (FK) | parent_comment_id (FK) | user_id (FK) | content | other_fields |
+Like Table:
+| id (PK) | comment_id (FK) | user_id (FK) | other_fields |
+Dislike Table:
+| id (PK) | comment_id (FK) | user_id (FK) | other_fields |

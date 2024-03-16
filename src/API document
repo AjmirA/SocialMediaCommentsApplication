@@ -1,0 +1,58 @@
+Base Url: http://localhost:8080/api/comments
+
+Add Comment
+Endpoint to add a new comment to a post.
+URL: /add
+Method: POST
+Request Parameters:
+postId (String, required): The ID of the post to which the comment belongs.
+userId (String, required): The ID of the user who is posting the comment.
+content (String, required): The content of the comment.
+Response:
+Status Code: 201 Created
+Response Body: JSON object representing the newly created comment.
+
+
+Add Reply
+Endpoint to add a reply to an existing comment.
+URL: /reply
+Method: POST
+Request Parameters:
+parentCommentId (String, required): The ID of the parent comment to which the reply is being added.
+userId (String, required): The ID of the user who is posting the reply.
+content (String, required): The content of the reply.
+Response:
+Status Code: 201 Created
+Response Body: JSON object representing the newly created reply.
+
+Like Comment
+Endpoint to like a comment.
+URL: /{commentId}/like
+Method: POST
+Path Parameters:
+commentId (String, required): The ID of the comment to be liked.
+Request Parameters:
+userId (String, required): The ID of the user who is liking the comment.
+Response:
+Status Code: 200 OK
+
+Dislike Comment
+Endpoint to dislike a comment.
+URL: /{commentId}/dislike
+Method: POST
+Path Parameters:
+commentId (String, required): The ID of the comment to be disliked.
+Request Parameters:
+userId (String, required): The ID of the user who is disliking the comment.
+Response:
+Status Code: 200 OK
+
+Get Comments
+Endpoint to retrieve comments for a specific post.
+URL: /{postId}
+Method: GET
+Path Parameters:
+postId (String, required): The ID of the post for which comments are to be retrieved.
+Response:
+Status Code: 200 OK
+Response Body: JSON array containing the comments for the specified post.
