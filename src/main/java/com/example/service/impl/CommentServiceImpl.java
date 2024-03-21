@@ -1,11 +1,10 @@
     package com.example.service.impl;
 
+    import com.example.constants.ErrorCode;
     import com.example.exception.BaseException;
     import com.example.exception.CommentServiceException;
     import com.example.model.*;
-    import com.example.repository.CommentRepository;
-    import com.example.repository.PostRepository;
-    import com.example.repository.UserRepository;
+    import com.example.repository.*;
     import com.example.service.CommentService;
     import org.springframework.beans.factory.annotation.Autowired;
     import org.springframework.stereotype.Service;
@@ -26,6 +25,12 @@
         @Autowired
         private PostRepository postRepository;
 
+        @Autowired
+        LikeRepository likeRepository;
+
+        @Autowired
+        DislikeRepository dislikeRepository;
+
         @Override
         public Comment addComment(String postId, String userId, String content) {
             try {
@@ -45,7 +50,7 @@
             try {
                 Optional<Comment> optionalComment = commentRepository.findById(parentCommentId);
                 if(!optionalComment.isPresent()){
-                    throw new CommentServiceException("Parent comment not found");
+                    throw new CommentServiceException(ErrorCode.PARENT_COMMAND_NOT_FOUNT);
                 }
 
                 Comment parentComment=optionalComment.get();
@@ -72,20 +77,21 @@
         public void likeComment(String commentId, String userId) {
             Optional<Comment> optionalComment = commentRepository.findById(commentId);
             if(!optionalComment.isPresent()){
-                throw new CommentServiceException("Comment not found");
+                throw new CommentServiceException(ErrorCode.COMMAND_NOT_FOUNT);
             }
             Optional<User> optionalUser = userRepository.findById(userId);
             if(!optionalUser.isPresent()){
-                throw new CommentServiceException("User not found");
+                throw new CommentServiceException(ErrorCode.USER_NOT_FOUNT);
             }
             Comment comment=optionalComment.get();
             User user=optionalUser.get();
-
             Like like = new Like();
             like.setComment(comment);
             like.setUser(user);
 
-            comment.getLikes().add(like);
+            Like savedLike = likeRepository.save(like);
+
+            comment.getLikes().add(savedLike);
             commentRepository.save(comment);
         }
 
@@ -93,11 +99,11 @@
         public void dislikeComment(String commentId, String userId) {
             Optional<Comment> optionalComment = commentRepository.findById(commentId);
             if(!optionalComment.isPresent()){
-                throw new CommentServiceException("Comment not found");
+                throw new CommentServiceException(ErrorCode.COMMAND_NOT_FOUNT);
             }
             Optional<User> optionalUser = userRepository.findById(userId);
             if(!optionalUser.isPresent()){
-                throw new CommentServiceException("User not found");
+                throw new CommentServiceException(ErrorCode.USER_NOT_FOUNT);
             }
             Comment comment=optionalComment.get();
             User user=optionalUser.get();
@@ -105,8 +111,9 @@
             Dislike dislike = new Dislike();
             dislike.setComment(comment);
             dislike.setUser(user);
+            Dislike savedDislike = dislikeRepository.save(dislike);
+            comment.getDislikes().add(savedDislike);
 
-            comment.getDislikes().add(dislike);
             commentRepository.save(comment);
         }
 

@@ -4,17 +4,14 @@ import com.example.model.Comment;
 import com.example.model.Dislike;
 import com.example.model.Like;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.stereotype.Component;
 
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@Component
-public class CommentResponse implements Serializable {
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class CommentResponseBody extends BaseResponse {
 
     private String id;
 
@@ -22,7 +19,7 @@ public class CommentResponse implements Serializable {
 
     private Comment parentComment;
     @JsonIgnore
-    private List<CommentResponse> replies;
+    private List<Comment> replies;
 
     private String userId;
 

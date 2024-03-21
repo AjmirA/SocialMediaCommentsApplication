@@ -1,12 +1,16 @@
 package com.example.controller;
 
+import com.example.constants.ApplicationConstants;
 import com.example.model.Comment;
 import com.example.model.Dislike;
 import com.example.model.Like;
 import com.example.request.CommentRequest;
 import com.example.request.LikeDislikeRequest;
 import com.example.request.ReplyRequest;
-import com.example.response.CommentResponse;
+import com.example.response.CommentsResponse;
+import com.example.response.CommentResponseBody;
+import com.example.response.GenericResponse;
+import com.example.response.ResponseHeader;
 import com.example.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/comments")
@@ -25,50 +28,77 @@ public class CommentController {
     private CommentService commentService;
 
     @PostMapping("/add")
-    public ResponseEntity<Comment> addComment(@RequestBody CommentRequest commentRequest) {
+    public ResponseEntity<GenericResponse> addComment(@RequestBody CommentRequest commentRequest) {
         Comment comment = commentService.addComment(commentRequest.getPostId(), commentRequest.getUserId(), commentRequest.getContent());
-        return new ResponseEntity<>(comment, HttpStatus.CREATED);
+        CommentResponseBody commentResponseBody= mapToResponse(comment);
+        ResponseHeader responseHeader=createResponseHeader();
+        GenericResponse<CommentResponseBody> genericResponse=new GenericResponse<>();
+        genericResponse.setHeader(responseHeader);
+        genericResponse.setBody(commentResponseBody);
+
+        return new ResponseEntity<>(genericResponse, HttpStatus.CREATED);
     }
+
+
 
     @PostMapping("/reply")
-    public ResponseEntity<Comment> addReply(@RequestBody ReplyRequest replyRequest) {
+    public ResponseEntity<GenericResponse> addReply(@RequestBody ReplyRequest replyRequest) {
         Comment reply = commentService.addReply(replyRequest.getParentCommentId(), replyRequest.getUserId(), replyRequest.getContent());
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        CommentResponseBody commentResponseBody= mapToResponse(reply);
+        ResponseHeader responseHeader=createResponseHeader();
+        GenericResponse<CommentResponseBody> genericResponse=new GenericResponse<>();
+        genericResponse.setHeader(responseHeader);
+        genericResponse.setBody(commentResponseBody);
+
+        return new ResponseEntity<>(genericResponse, HttpStatus.CREATED);
     }
 
-    @PostMapping("/{commentId}/like")
-    public ResponseEntity<Void> likeComment(@PathVariable String commentId, @RequestBody LikeDislikeRequest likeDislikeRequest) {
-        commentService.likeComment(commentId, likeDislikeRequest.getUserId());
-        return ResponseEntity.ok().build();
+    @PostMapping("/like")
+    public ResponseEntity<GenericResponse> likeComment(@RequestBody LikeDislikeRequest likeDislikeRequest) {
+        commentService.likeComment(likeDislikeRequest.getCommentId(), likeDislikeRequest.getUserId());
+        GenericResponse<CommentsResponse> genericResponse=new GenericResponse<>();
+        genericResponse.setHeader(createResponseHeader());
+        return new ResponseEntity<>(genericResponse, HttpStatus.CREATED);
     }
 
-    @PostMapping("/{commentId}/dislike")
-    public ResponseEntity<Void> dislikeComment(@PathVariable String commentId, @RequestBody LikeDislikeRequest likeDislikeRequest) {
-        commentService.dislikeComment(commentId, likeDislikeRequest.getUserId());
-        return ResponseEntity.ok().build();
+    @PostMapping("/dislike")
+    public ResponseEntity<GenericResponse> dislikeComment(@RequestBody LikeDislikeRequest likeDislikeRequest) {
+        commentService.dislikeComment(likeDislikeRequest.getCommentId(), likeDislikeRequest.getUserId());
+        GenericResponse<CommentsResponse> genericResponse=new GenericResponse<>();
+        genericResponse.setHeader(createResponseHeader());
+        return new ResponseEntity<>(genericResponse, HttpStatus.CREATED);
     }
 
     @GetMapping("/{postId}")
-    public ResponseEntity<List<CommentResponse>> getComments(@PathVariable String postId) {
+    public ResponseEntity<GenericResponse> getComments(@PathVariable String postId) {
         List<Comment> comments = commentService.getComments(postId);
-        return new ResponseEntity<>(mapToResponseList(comments),HttpStatus.OK);
+        List<CommentResponseBody> commentResponseBodyList=mapToResponseList(comments);
+        CommentsResponse commentsResponse =new CommentsResponse();
+        commentsResponse.setResponseBodyList(commentResponseBodyList);
+
+        ResponseHeader responseHeader=createResponseHeader();
+        GenericResponse<CommentsResponse> genericResponse=new GenericResponse<>();
+        genericResponse.setHeader(responseHeader);
+        genericResponse.setBody(commentsResponse);
+
+        return new ResponseEntity<>(genericResponse,HttpStatus.OK);
     }
 
 
-    public List<CommentResponse> mapToResponseList(List<Comment> comments) {
-        List<CommentResponse> commentResponseList=new ArrayList<>();
+    public List<CommentResponseBody> mapToResponseList(List<Comment> comments) {
+        List<CommentResponseBody> commentResponseBodyList =new ArrayList<>();
         for(Comment comment:comments){
-            commentResponseList.add(mapToResponse(comment));
+            commentResponseBodyList.add(mapToResponse(comment));
         }
-        return commentResponseList;
+        return commentResponseBodyList;
     }
 
-    public CommentResponse mapToResponse(Comment comment) {
-        CommentResponse response = new CommentResponse();
+    public CommentResponseBody mapToResponse(Comment comment) {
+        CommentResponseBody response = new CommentResponseBody();
         response.setId(comment.getId());
         response.setPostId(comment.getPostId());
         response.setParentComment(comment.getParentComment());
-        response.setReplies(mapToResponseList(comment.getReplies()));
+        response.setReplies(comment.getReplies());
         response.setUserId(comment.getUserId());
         response.setContent(comment.getContent());
         List<Like> likeList=new ArrayList<>();
@@ -84,5 +114,12 @@ public class CommentController {
         response.setDislikes(disLikeList);
 
         return response;
+    }
+
+    private ResponseHeader createResponseHeader() {
+        ResponseHeader responseHeader=new ResponseHeader();
+        responseHeader.setStatusCode(ApplicationConstants.SUCCESS_CODE);
+        responseHeader.setStatusMessage(ApplicationConstants.SUCCESS_MSG);
+        return responseHeader;
     }
 }

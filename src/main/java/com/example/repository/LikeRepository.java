@@ -7,5 +7,7 @@ import java.util.List;
 
 public interface LikeRepository extends MongoRepository<Like, String> {
     List<Like> findByCommentId(String commentId);
+
+    Like save(Like like);
 }
 
